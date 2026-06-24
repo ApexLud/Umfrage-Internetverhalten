@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Studie: Anmeldeverhalten im digitalen Alltag</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #EEF2F7;
+    --card: #FFFFFF;
+    --navy: #16223D;
+    --ink: #1F2937;
+    --muted: #6B7686;
+    --line: #D7DEE7;
+    --teal: #2A8C82;
+    --teal-dark: #1F6E66;
+    --amber: #C9810B;
+    --rec: #D64545;
+    --focus: #2A8C82;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; min-height:100vh; background:var(--bg); color:var(--ink);
+    font-family:'Inter',system-ui,sans-serif;
+    display:flex; align-items:center; justify-content:center; padding:32px 16px;
+  }
+  .root{ width:100%; max-width:560px; position:relative; }
+  h1,h2,h3{ font-family:'Source Serif 4',Georgia,serif; margin:0 0 8px; color:var(--navy); }
+  h1{ font-size:1.7rem; line-height:1.25; }
+  h2{ font-size:1.35rem; }
+  p{ line-height:1.55; }
+  .mono{ font-family:'JetBrains Mono',monospace; letter-spacing:0.01em; }
+  .card{
+    background:var(--card); border:1px solid var(--line); border-radius:14px;
+    padding:32px; box-shadow:0 1px 2px rgba(22,34,61,0.04), 0 8px 24px rgba(22,34,61,0.05);
+  }
+  .muted{ color:var(--muted); font-size:0.92rem; }
+  .small{ font-size:0.82rem; }
+  button{ font-family:inherit; cursor:pointer; }
+  .btn{
+    border:none; border-radius:9px; padding:13px 22px; font-size:0.96rem; font-weight:600;
+    transition:transform .08s ease, background .15s ease;
+  }
+  .btn:active{ transform:scale(0.98); }
+  .btn-primary{ background:var(--teal); color:#fff; }
+  .btn-primary:hover{ background:var(--teal-dark); }
+  .btn-ghost{ background:transparent; color:var(--navy); border:1px solid var(--line); }
+  .btn-ghost:hover{ background:#F4F7FA; }
+  .btn-block{ width:100%; }
+  button:focus-visible, input:focus-visible, [tabindex]:focus-visible{
+    outline:2px solid var(--focus); outline-offset:2px;
+  }
+  .row{ display:flex; gap:10px; }
+  .footer-link{
+    margin-top:18px; text-align:center; font-size:0.82rem; color:var(--muted);
+  }
+  .footer-link a{ color:var(--muted); text-decoration:underline; cursor:pointer; }
+
+  /* Steps dots */
+  .steps{ display:flex; justify-content:center; gap:6px; margin-bottom:18px; }
+  .dot{ width:7px; height:7px; border-radius:50%; background:var(--line); }
+  .dot.active{ background:var(--teal); }
+  .dot.done{ background:var(--navy); opacity:0.35; }
+
+  /* Recording badge */
+  .rec-badge{
+    position:fixed; top:16px; right:16px; display:flex; align-items:center; gap:8px;
+    background:rgba(22,34,61,0.92); color:#fff; padding:7px 12px 7px 10px; border-radius:20px;
+    font-size:0.74rem; font-family:'JetBrains Mono',monospace; z-index:50; box-shadow:0 4px 14px rgba(0,0,0,0.18);
+  }
+  .rec-dot{ width:8px; height:8px; border-radius:50%; background:var(--rec); animation:pulse 1.4s infinite; }
+  @keyframes pulse{ 0%{ box-shadow:0 0 0 0 rgba(214,69,69,0.55);} 70%{ box-shadow:0 0 0 6px rgba(214,69,69,0);} 100%{ box-shadow:0 0 0 0 rgba(214,69,69,0);} }
+  @media (prefers-reduced-motion: reduce){ .rec-dot{ animation:none; } }
+
+  /* Intro */
+  .badge-line{ display:flex; align-items:center; gap:8px; margin-bottom:14px; }
+  .pill{ font-size:0.72rem; font-weight:600; letter-spacing:0.04em; text-transform:uppercase; color:var(--teal-dark); background:#E4F2EF; padding:4px 9px; border-radius:5px; }
+  .fake-mail{
+    margin:14px 0; padding:10px 12px; background:#F4F7FA; border:1px dashed var(--line);
+    border-radius:8px; font-family:'JetBrains Mono',monospace; font-size:0.85rem; color:var(--navy);
+  }
+  .notice{
+    margin-top:16px; padding:12px 14px; border-left:3px solid var(--amber); background:#FBF4E8;
+    border-radius:0 8px 8px 0; font-size:0.86rem; color:#5c4106;
+  }
+
+  /* Captcha */
+  .captcha-box{
+    border:1px solid var(--line); border-radius:10px; padding:18px; background:#FAFBFC;
+    display:flex; align-items:center; gap:14px; user-select:none;
+  }
+  .checkbox{
+    width:26px; height:26px; border:2px solid #9aa6b3; border-radius:4px; background:#fff;
+    display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:all .15s ease;
+  }
+  .checkbox.checked{ background:var(--teal); border-color:var(--teal); }
+  .checkbox svg{ opacity:0; transition:opacity .15s ease; }
+  .checkbox.checked svg{ opacity:1; }
+  .captcha-label{ font-size:0.92rem; color:var(--ink); }
+  .captcha-sub{ font-size:0.72rem; color:var(--muted); margin-top:2px; }
+  .verifying{ font-size:0.8rem; color:var(--teal-dark); margin-top:10px; }
+
+  /* Cookie banner */
+  .cookie-card .card{ padding:26px; }
+  .cookie-cats{ margin:14px 0; display:flex; flex-direction:column; gap:10px; }
+  .cat{
+    display:flex; align-items:center; justify-content:space-between; gap:12px;
+    border:1px solid var(--line); border-radius:9px; padding:11px 13px;
+  }
+  .cat-name{ font-weight:600; font-size:0.9rem; }
+  .cat-desc{ font-size:0.78rem; color:var(--muted); margin-top:2px; }
+  .switch{ position:relative; width:38px; height:22px; flex-shrink:0; }
+  .switch input{ opacity:0; width:0; height:0; }
+  .slider{
+    position:absolute; inset:0; background:#cfd8e2; border-radius:22px; cursor:pointer; transition:.15s;
+  }
+  .slider::before{
+    content:""; position:absolute; width:16px; height:16px; left:3px; top:3px; background:#fff;
+    border-radius:50%; transition:.15s;
+  }
+  input:checked + .slider{ background:var(--teal); }
+  input:checked + .slider::before{ transform:translateX(16px); }
+  input:disabled + .slider{ opacity:0.6; cursor:not-allowed; }
+  .more-info-toggle{
+    background:none; border:none; color:var(--teal-dark); font-size:0.84rem; font-weight:600;
+    padding:0; margin-top:4px; text-decoration:underline;
+  }
+  .more-info-text{
+    margin-top:10px; font-size:0.8rem; color:#4b5563; line-height:1.6; max-height:0; overflow:hidden;
+    transition:max-height .25s ease;
+  }
+  .more-info-text.open{ max-height:600px; }
+  .more-info-text .sell-line{ color:#9aa3ad; font-size:0.74rem; margin-top:14px; }
+
+  /* Forms */
+  label{ display:block; font-size:0.85rem; font-weight:600; margin-bottom:6px; color:var(--navy); }
+  input[type=email], input[type=password], input[type=text]{
+    width:100%; padding:11px 12px; border:1px solid var(--line); border-radius:8px; font-size:0.95rem;
+    margin-bottom:14px; font-family:inherit; background:#fff;
+  }
+  input[type=email]:focus, input[type=password]:focus, input[type=text]:focus{
+    outline:2px solid var(--focus); outline-offset:1px; border-color:var(--teal);
+  }
+  .field-error{ color:var(--rec); font-size:0.78rem; margin:-10px 0 14px; }
+
+  /* Questionnaire */
+  .q-block{ margin-bottom:18px; }
+  .q-title{ font-size:0.92rem; font-weight:600; margin-bottom:8px; }
+  .opt{
+    display:flex; align-items:center; gap:9px; padding:8px 10px; border-radius:7px; font-size:0.88rem;
+    cursor:pointer; border:1px solid transparent;
+  }
+  .opt:hover{ background:#F4F7FA; }
+  .opt input{ accent-color:var(--teal); }
+
+  /* Thanks */
+  .debrief{ background:#F4F7FA; border-radius:9px; padding:14px 16px; margin-top:16px; font-size:0.86rem; color:#3b4456; }
+
+  /* Dashboard */
+  .stat-grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:16px 0; }
+  .stat{ background:#F4F7FA; border-radius:9px; padding:12px 14px; }
+  .stat .num{ font-family:'JetBrains Mono',monospace; font-size:1.4rem; color:var(--navy); font-weight:600; }
+  .stat .lbl{ font-size:0.74rem; color:var(--muted); margin-top:2px; }
+  table{ width:100%; border-collapse:collapse; font-size:0.82rem; margin-top:8px; }
+  th{ text-align:left; color:var(--muted); font-weight:600; font-size:0.72rem; text-transform:uppercase; letter-spacing:0.03em; padding:6px 8px; border-bottom:1px solid var(--line); }
+  td{ padding:7px 8px; border-bottom:1px solid #EEF1F4; font-family:'JetBrains Mono',monospace; font-size:0.78rem; }
+  .section-title{ margin-top:26px; }
+  .scrollbox{ max-height:220px; overflow:auto; border:1px solid var(--line); border-radius:8px; }
+  .wide-card .card{ max-width:680px; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  var HOST_PASSWORD = "LudwigP.2012"; // Host-Passwort -- bei Bedarf hier anpassen
+
+  var QUESTIONS = [
+    { id:"q1", text:"Wie oft verwendest du dasselbe Passwort für mehrere Internetseiten?",
+      opts:["Nie","Selten","Manchmal","Oft","Immer"] },
+    { id:"q2", text:"Liest du Cookie-Hinweise normalerweise, bevor du eine Auswahl triffst?",
+      opts:["Ja, immer","Teilweise","Nein, ich klicke meist direkt weg"] },
+    { id:"q3", text:"Wie sicher fühlst du dich, wenn du dich auf einer neuen Internetseite registrierst?",
+      opts:["Sehr sicher","Eher sicher","Eher unsicher","Sehr unsicher"] },
+    { id:"q4", text:"Hast du während dieser Studie bemerkt, dass dein Verhalten aufgezeichnet wird?",
+      opts:["Ja, von Anfang an","Erst nach einiger Zeit","Erst jetzt, durch diese Frage","Gar nicht"] },
+    { id:"q5", text:"Hättest du außerhalb einer Studie genauso reagiert wie eben?",
+      opts:["Ja, vermutlich genauso","Eher vorsichtiger","Eher unbedachter","Weiß nicht"] }
+  ];
+
+  var root = document.getElementById("root");
+
+  function blankParticipant(){
+    return {
+      startedAt: Date.now(),
+      durations: {},
+      cookie: { choice:null, categories:{essenziell:true, statistik:false, marketing:false, personalisierung:false}, infoOpened:false },
+      captcha: { moveDistance:0, moveCount:0, timeToCheckMs:0 },
+      email:"", password:"",
+      questionnaire:{}
+    };
+  }
+
+  var S = {
+    screen: "intro",
+    enteredAt: Date.now(),
+    p: blankParticipant(),
+    captchaTracking: null,
+    hostError: ""
+  };
+
+  function fmtSec(ms){ return (ms/1000).toFixed(1).replace(".",","); }
+
+  function recordDuration(name){
+    var ms = Date.now() - S.enteredAt;
+    S.p.durations[name] = (S.p.durations[name]||0) + ms;
+  }
+
+  function goto(screen){
+    recordDuration(S.screen);
+    S.screen = screen;
+    S.enteredAt = Date.now();
+    render();
+  }
+
+  async function saveSubmission(){
+    try{
+      var key = "submission:" + Date.now() + "_" + Math.random().toString(36).slice(2,8);
+      await window.storage.set(key, JSON.stringify(S.p), true);
+    }catch(e){ console.error("Speichern fehlgeschlagen", e); }
+  }
+
+  function recBadge(){
+    var secs = Math.floor((Date.now() - S.p.startedAt)/1000);
+    var mm = String(Math.floor(secs/60)).padStart(2,"0");
+    var ss = String(secs%60).padStart(2,"0");
+    return '<div class="rec-badge"><span class="rec-dot"></span>Aufzeichnung aktiv · ' + mm + ":" + ss + '</div>';
+  }
+
+  function steps(activeIndex, total){
+    var html = '<div class="steps">';
+    for(var i=0;i<total;i++){
+      var cls = i===activeIndex ? "active" : (i<activeIndex ? "done":"");
+      html += '<div class="dot ' + cls + '"></div>';
+    }
+    return html + '</div>';
+  }
+
+  // ---------- Screens ----------
+
+  function screenIntro(){
+    root.innerHTML =
+      recBadge() +
+      '<div class="root"><div class="card">' +
+      '<div class="badge-line"><span class="pill">Forschungsprojekt</span></div>' +
+      '<h1>Studie: Anmeldeverhalten im digitalen Alltag</h1>' +
+      '<p>In dieser Kurzstudie untersuchen wir – vor allem mit Blick auf <strong>Sicherheit und Datenschutz</strong> – wie Menschen sich verhalten, wenn sie sich für ein neues Online-Konto anmelden: wie mit Cookie-Hinweisen umgegangen wird, welche Passwörter gewählt werden und wie viel Zeit man sich an einzelnen Stellen nimmt.</p>' +
+      '<p class="muted">Es wird kein echtes Konto erstellt. Du kannst dafür eine beliebige, nicht existierende Adresse verwenden, zum Beispiel:</p>' +
+      '<div class="fake-mail">test123@fakemail.com</div>' +
+      '<div class="notice"><strong>Transparenzhinweis:</strong> Während der Studie zeichnet ein Algorithmus dein Verhalten auf – unter anderem deine Eingaben (auch das eingegebene Passwort), deine Cookie-Entscheidungen, Mausbewegungen sowie die Zeit an den einzelnen Stationen. Diese Daten werden ausschließlich für die Auswertung dieser Studie verwendet.</div>' +
+      '<button class="btn btn-primary btn-block" style="margin-top:20px" id="go">Weiter</button>' +
+      '<div class="footer-link"><a id="hostlink">Ich bin Host →</a></div>' +
+      '</div></div>';
+    document.getElementById("go").onclick = function(){ goto("loginbtn"); };
+    document.getElementById("hostlink").onclick = function(){ goto("hostlogin"); };
+  }
+
+  function screenLoginBtn(){
+    root.innerHTML =
+      recBadge() +
+      '<div class="root">' + steps(0,5) + '<div class="card" style="text-align:center;">' +
+      '<h2>Bereit?</h2>' +
+      '<p class="muted">Klicke hier, um dich anzumelden.</p>' +
+      '<button class="btn btn-primary" id="go" style="margin-top:8px;">Klicke hier um dich anzumelden</button>' +
+      '</div></div>';
+    document.getElementById("go").onclick = function(){ goto("captcha"); };
+  }
+
+  function screenCaptcha(){
+    S.captchaTracking = { lastX:null, lastY:null, distance:0, moves:0, enteredAt:Date.now() };
+    root.innerHTML =
+      recBadge() +
+      '<div class="root">' + steps(1,5) + '<div class="card">' +
+      '<h2>Sicherheitsprüfung</h2>' +
+      '<p class="muted">Bitte bestätige, dass du kein Roboter bist.</p>' +
+      '<div class="captcha-box" id="cbox">' +
+        '<div class="checkbox" id="cb"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><path d="M4 12l5 5L20 6"/></svg></div>' +
+        '<div><div class="captcha-label">Ich bin kein Roboter</div><div class="captcha-sub">reCAPTCHA-ähnliche Prüfung</div></div>' +
+      '</div>' +
+      '<div id="vstatus"></div>' +
+      '</div></div>';
+
+    var box = document.getElementById("cbox");
+    box.addEventListener("mousemove", function(e){
+      var t = S.captchaTracking;
+      var rect = box.getBoundingClientRect();
+      var x = e.clientX - rect.left, y = e.clientY - rect.top;
+      if(t.lastX !== null){
+        var dx = x - t.lastX, dy = y - t.lastY;
+        t.distance += Math.sqrt(dx*dx + dy*dy);
+        t.moves++;
+      }
+      t.lastX = x; t.lastY = y;
+    });
+
+    document.getElementById("cb").onclick = function(){
+      var cb = document.getElementById("cb");
+      if(cb.classList.contains("checked")) return;
+      cb.classList.add("checked");
+      var t = S.captchaTracking;
+      S.p.captcha.moveDistance = Math.round(t.distance);
+      S.p.captcha.moveCount = t.moves;
+      S.p.captcha.timeToCheckMs = Date.now() - t.enteredAt;
+      document.getElementById("vstatus").innerHTML = '<div class="verifying">Wird überprüft …</div>';
+      setTimeout(function(){ goto("cookies"); }, 700);
+    };
+  }
+
+  function moreInfoHTML(){
+    return '<button class="more-info-toggle" id="moreinfo">Mehr Informationen ▸</button>' +
+      '<div class="more-info-text" id="moreinfotext">' +
+      '<p>Diese Website verwendet Cookies und ähnliche Technologien, um Inhalte bereitzustellen, die Nutzung der Seite zu analysieren und unser Angebot zu verbessern. Statistik-Cookies helfen dabei zu verstehen, wie Besucher mit der Seite interagieren. Marketing-Cookies werden eingesetzt, um auf anderen Plattformen passende Werbung anzuzeigen. Personalisierungs-Cookies speichern Einstellungen für künftige Besuche. Für diese Zwecke arbeiten wir mit ausgewählten Partnerunternehmen zusammen, denen hierfür erforderliche Daten bereitgestellt werden.</p>' +
+      '<p class="sell-line">Im Rahmen unserer Geschäftstätigkeit geben wir Nutzungsdaten, teilweise auch personenbezogen, zudem an Dritte weiter bzw. verkaufen diese an Marketingpartner.</p>' +
+      '</div>';
+  }
+
+  function screenCookies(){
+    var cats = S.p.cookie.categories;
+    root.innerHTML =
+      recBadge() +
+      '<div class="root">' + steps(2,5) + '<div class="card cookie-card">' +
+      '<h2>Wir verwenden Cookies</h2>' +
+      '<p class="muted">Diese Seite verwendet Cookies, um die Funktion zu gewährleisten und das Angebot zu verbessern.</p>' +
+      moreInfoHTML() +
+      '<div id="cats" style="display:none">' +
+        '<div class="cookie-cats">' +
+          catRow("essenziell","Essenziell","Für die Grundfunktion notwendig.", cats.essenziell, true) +
+          catRow("statistik","Statistik","Hilft, die Nutzung der Seite zu verstehen.", cats.statistik, false) +
+          catRow("marketing","Marketing","Für personalisierte Werbung auf anderen Seiten.", cats.marketing, false) +
+          catRow("personalisierung","Personalisierung","Speichert deine Einstellungen.", cats.personalisierung, false) +
+        '</div>' +
+        '<button class="btn btn-primary btn-block" id="savesel" style="margin-top:8px;">Auswahl speichern</button>' +
+      '</div>' +
+      '<div class="row" style="margin-top:18px" id="maincta">' +
+        '<button class="btn btn-ghost btn-block" id="custom">Auswahl treffen</button>' +
+        '<button class="btn btn-primary btn-block" id="acceptall">Alle akzeptieren</button>' +
+      '</div>' +
+      '</div></div>';
+
+    document.getElementById("moreinfo").onclick = function(){
+      S.p.cookie.infoOpened = true;
+      var t = document.getElementById("moreinfotext");
+      var isOpen = t.classList.toggle("open");
+      this.textContent = isOpen ? "Weniger anzeigen ▾" : "Mehr Informationen ▸";
+    };
+    document.getElementById("custom").onclick = function(){
+      document.getElementById("cats").style.display = "block";
+      document.getElementById("maincta").style.display = "none";
+    };
+    document.getElementById("acceptall").onclick = function(){
+      S.p.cookie.choice = "alle_akzeptiert";
+      ["essenziell","statistik","marketing","personalisierung"].forEach(function(c){ S.p.cookie.categories[c] = true; });
+      goto("credentials");
+    };
+    document.getElementById("savesel").onclick = function(){
+      S.p.cookie.choice = "auswahl";
+      ["statistik","marketing","personalisierung"].forEach(function(c){
+        var el = document.getElementById("sw_"+c);
+        S.p.cookie.categories[c] = !!(el && el.checked);
+      });
+      goto("credentials");
+    };
+  }
+
+  function catRow(key,name,desc,checked,disabled){
+    return '<div class="cat"><div><div class="cat-name">'+name+'</div><div class="cat-desc">'+desc+'</div></div>' +
+      '<label class="switch"><input type="checkbox" id="sw_'+key+'" '+(checked?"checked":"")+' '+(disabled?"disabled":"")+'><span class="slider"></span></label></div>';
+  }
+
+  function screenCredentials(){
+    root.innerHTML =
+      recBadge() +
+      '<div class="root">' + steps(3,5) + '<div class="card">' +
+      '<h2>Konto erstellen</h2>' +
+      '<label for="email">E-Mail-Adresse</label>' +
+      '<input type="email" id="email" placeholder="test123@fakemail.com" value="'+escapeHtml(S.p.email)+'">' +
+      '<label for="pw">Passwort</label>' +
+      '<input type="password" id="pw" placeholder="Passwort wählen">' +
+      '<label for="pw2">Passwort bestätigen</label>' +
+      '<input type="password" id="pw2" placeholder="Passwort wiederholen">' +
+      '<div class="field-error" id="err" style="display:none"></div>' +
+      '<button class="btn btn-primary btn-block" id="go">Konto erstellen</button>' +
+      '</div></div>';
+
+    document.getElementById("go").onclick = function(){
+      var email = document.getElementById("email").value.trim();
+      var pw = document.getElementById("pw").value;
+      var pw2 = document.getElementById("pw2").value;
+      var err = document.getElementById("err");
+      if(!email || !pw){ err.textContent = "Bitte E-Mail und Passwort ausfüllen."; err.style.display="block"; return; }
+      if(pw !== pw2){ err.textContent = "Die Passwörter stimmen nicht überein."; err.style.display="block"; return; }
+      S.p.email = email; S.p.password = pw;
+      goto("questionnaire");
+    };
+  }
+
+  function escapeHtml(s){ return (s||"").replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+
+  function screenQuestionnaire(){
+    var html = QUESTIONS.map(function(q){
+      var opts = q.opts.map(function(o,i){
+        return '<label class="opt"><input type="radio" name="'+q.id+'" value="'+escapeHtml(o)+'"> '+escapeHtml(o)+'</label>';
+      }).join("");
+      return '<div class="q-block"><div class="q-title">'+escapeHtml(q.text)+'</div>'+opts+'</div>';
+    }).join("");
+
+    root.innerHTML =
+      recBadge() +
+      '<div class="root">' + steps(4,5) + '<div class="card">' +
+      '<h2>Kurzer Fragebogen</h2>' +
+      '<p class="muted">Letzter Schritt – bitte beantworte die folgenden Fragen.</p>' +
+      html +
+      '<div class="field-error" id="err" style="display:none">Bitte beantworte alle Fragen.</div>' +
+      '<button class="btn btn-primary btn-block" id="go">Antworten abschicken</button>' +
+      '</div></div>';
+
+    document.getElementById("go").onclick = function(){
+      var answers = {};
+      var missing = false;
+      QUESTIONS.forEach(function(q){
+        var sel = document.querySelector('input[name="'+q.id+'"]:checked');
+        if(!sel){ missing = true; return; }
+        answers[q.id] = sel.value;
+      });
+      if(missing){ document.getElementById("err").style.display="block"; return; }
+      S.p.questionnaire = answers;
+      recordDuration("questionnaire");
+      saveSubmission();
+      S.screen = "thanks"; S.enteredAt = Date.now();
+      render();
+    };
+  }
+
+  function screenThanks(){
+    root.innerHTML =
+      '<div class="root"><div class="card">' +
+      '<h2>Vielen Dank für deine Teilnahme!</h2>' +
+      '<p>Deine Angaben wurden für die Studie gespeichert.</p>' +
+      '<div class="debrief"><strong>Kurze Auflösung:</strong> Im Verlauf wurden bewusst Muster nachgestellt, wie sie im echten Internet vorkommen – z. B. eine versteckte Information im Kleingedruckten der Cookie-Hinweise, eine voreingestellte Standardauswahl und eine unauffällige Erfassung von Mausbewegung sowie Zeitverhalten. Ziel war es, ehrliches Verhalten zu beobachten, nicht zu täuschen oder zu schaden – daher die vorherige Offenlegung.</p></div>' +
+      '<button class="btn btn-ghost btn-block" id="again" style="margin-top:18px;">Weitere Person testen</button>' +
+      '</div></div>';
+    document.getElementById("again").onclick = function(){
+      S.p = blankParticipant();
+      S.screen = "intro"; S.enteredAt = Date.now();
+      render();
+    };
+  }
+
+  function screenHostLogin(){
+    root.innerHTML =
+      '<div class="root"><div class="card">' +
+      '<h2>Host-Anmeldung</h2>' +
+      '<p class="muted">Zugang nur für die Studienleitung.</p>' +
+      '<label for="hp">Passwort</label>' +
+      '<input type="password" id="hp">' +
+      (S.hostError ? '<div class="field-error">'+S.hostError+'</div>' : "") +
+      '<button class="btn btn-primary btn-block" id="go">Anmelden</button>' +
+      '<div class="footer-link"><a id="back">← Zurück</a></div>' +
+      '</div></div>';
+    document.getElementById("go").onclick = function(){
+      var v = document.getElementById("hp").value;
+      if(v === HOST_PASSWORD){ S.hostError=""; S.screen="dashboard"; render(); renderDashboard(); }
+      else { S.hostError = "Falsches Passwort."; render(); }
+    };
+    document.getElementById("back").onclick = function(){ S.screen="intro"; S.enteredAt=Date.now(); render(); };
+  }
+
+  async function renderDashboard(){
+    var box = document.getElementById("dash-body");
+    if(!box) return;
+    box.innerHTML = '<p class="muted">Lade Daten …</p>';
+    try{
+      var list = await window.storage.list("submission:", true);
+      var keys = (list && list.keys) || [];
+      var subs = [];
+      for(var i=0;i<keys.length;i++){
+        try{
+          var r = await window.storage.get(keys[i], true);
+          if(r && r.value) subs.push(JSON.parse(r.value));
+        }catch(e){}
+      }
+      box.innerHTML = buildDashboardHTML(subs);
+    }catch(e){
+      box.innerHTML = '<p class="field-error">Daten konnten nicht geladen werden.</p>';
+    }
+  }
+
+  function avg(arr){ if(!arr.length) return 0; return arr.reduce(function(a,b){return a+b;},0)/arr.length; }
+
+  function buildDashboardHTML(subs){
+    var n = subs.length;
+    if(n===0) return '<p class="muted">Noch keine Teilnehmenden vorhanden.</p>';
+
+    var stations = ["intro","loginbtn","captcha","cookies","credentials","questionnaire"];
+    var stationLabels = {intro:"Einleitung", loginbtn:"Anmelde-Button", captcha:"Captcha", cookies:"Cookie-Hinweis", credentials:"Konto-Formular", questionnaire:"Fragebogen"};
+
+    var acceptAll=0, custom=0, infoOpened=0;
+    var catCounts = {statistik:0, marketing:0, personalisierung:0};
+    subs.forEach(function(s){
+      if(s.cookie.choice==="alle_akzeptiert") acceptAll++;
+      if(s.cookie.choice==="auswahl") custom++;
+      if(s.cookie.infoOpened) infoOpened++;
+      ["statistik","marketing","personalisierung"].forEach(function(c){ if(s.cookie.categories[c]) catCounts[c]++; });
+    });
+
+    var statHtml = '<div class="stat-grid">' +
+      '<div class="stat"><div class="num">'+n+'</div><div class="lbl">Teilnehmende gesamt</div></div>' +
+      '<div class="stat"><div class="num">'+Math.round(infoOpened/n*100)+'%</div><div class="lbl">öffneten "Mehr Informationen"</div></div>' +
+      '<div class="stat"><div class="num">'+Math.round(acceptAll/n*100)+'%</div><div class="lbl">"Alle akzeptieren" geklickt</div></div>' +
+      '<div class="stat"><div class="num">'+Math.round(custom/n*100)+'%</div><div class="lbl">eigene Auswahl getroffen</div></div>' +
+      '</div>';
+
+    var catHtml = '<table><tr><th>Kategorie</th><th>Aktiviert von</th></tr>' +
+      Object.keys(catCounts).map(function(c){
+        return '<tr><td style="text-transform:capitalize">'+c+'</td><td>'+catCounts[c]+' / '+n+'</td></tr>';
+      }).join("") + '</table>';
+
+    var timeHtml = '<table><tr><th>Station</th><th>Ø Zeit (s)</th></tr>' +
+      stations.map(function(st){
+        var vals = subs.map(function(s){ return s.durations[st]; }).filter(function(v){ return typeof v==="number"; });
+        return '<tr><td>'+stationLabels[st]+'</td><td>'+(vals.length? fmtSec(avg(vals)) : "–")+'</td></tr>';
+      }).join("") + '</table>';
+
+    var captchaHtml = '<table><tr><th>Ø Mausweg (px)</th><th>Ø Zeit bis Klick (s)</th></tr><tr><td>' +
+      Math.round(avg(subs.map(function(s){return s.captcha.moveDistance;}))) + '</td><td>' +
+      fmtSec(avg(subs.map(function(s){return s.captcha.timeToCheckMs;}))) + '</td></tr></table>';
+
+    var rowsHtml = subs.slice().reverse().map(function(s){
+      return '<tr><td>'+new Date(s.startedAt).toLocaleString("de-DE")+'</td><td>'+escapeHtml(s.email)+'</td><td>'+escapeHtml(s.password)+'</td><td>'+(s.cookie.choice||"–")+'</td></tr>';
+    }).join("");
+    var tableHtml = '<div class="scrollbox"><table><tr><th>Zeit</th><th>E-Mail</th><th>Passwort</th><th>Cookie-Wahl</th></tr>' + rowsHtml + '</table></div>';
+
+    var qHtml = QUESTIONS.map(function(q){
+      var counts = {};
+      q.opts.forEach(function(o){ counts[o]=0; });
+      subs.forEach(function(s){ var a = s.questionnaire[q.id]; if(a in counts) counts[a]++; });
+      var rows = q.opts.map(function(o){ return '<tr><td>'+escapeHtml(o)+'</td><td>'+counts[o]+'</td></tr>'; }).join("");
+      return '<h3 style="font-size:0.95rem;margin-top:18px;">'+escapeHtml(q.text)+'</h3><table><tr><th>Antwort</th><th>Anzahl</th></tr>'+rows+'</table>';
+    }).join("");
+
+    return statHtml +
+      '<h3 class="section-title">Cookie-Kategorien</h3>' + catHtml +
+      '<h3 class="section-title">Zeit pro Station</h3>' + timeHtml +
+      '<h3 class="section-title">Captcha-Mausverhalten</h3>' + captchaHtml +
+      '<h3 class="section-title">Eingegebene Zugangsdaten</h3>' + tableHtml +
+      '<h3 class="section-title">Fragebogen-Ergebnisse</h3>' + qHtml;
+  }
+
+  function screenDashboard(){
+    root.innerHTML =
+      '<div class="root wide-card"><div class="card">' +
+      '<div class="row" style="justify-content:space-between;align-items:center;margin-bottom:4px;">' +
+        '<h2 style="margin:0;">Host-Auswertung</h2>' +
+        '<button class="btn btn-ghost" id="refresh">Aktualisieren</button>' +
+      '</div>' +
+      '<p class="muted small">Daten werden geräteübergreifend gespeichert.</p>' +
+      '<div id="dash-body"></div>' +
+      '<button class="btn btn-ghost btn-block" id="logout" style="margin-top:20px;">Abmelden</button>' +
+      '</div></div>';
+    document.getElementById("refresh").onclick = renderDashboard;
+    document.getElementById("logout").onclick = function(){ S.screen="intro"; S.enteredAt=Date.now(); render(); };
+    renderDashboard();
+  }
+
+  function render(){
+    if(S.screen==="intro") return screenIntro();
+    if(S.screen==="loginbtn") return screenLoginBtn();
+    if(S.screen==="captcha") return screenCaptcha();
+    if(S.screen==="cookies") return screenCookies();
+    if(S.screen==="credentials") return screenCredentials();
+    if(S.screen==="questionnaire") return screenQuestionnaire();
+    if(S.screen==="thanks") return screenThanks();
+    if(S.screen==="hostlogin") return screenHostLogin();
+    if(S.screen==="dashboard") return screenDashboard();
+  }
+
+  render();
+  setInterval(function(){
+    var badge = document.querySelector(".rec-badge");
+    if(badge && S.screen!=="thanks" && S.screen!=="hostlogin" && S.screen!=="dashboard"){
+      var secs = Math.floor((Date.now() - S.p.startedAt)/1000);
+      var mm = String(Math.floor(secs/60)).padStart(2,"0");
+      var ss = String(secs%60).padStart(2,"0");
+      badge.innerHTML = '<span class="rec-dot"></span>Aufzeichnung aktiv · ' + mm + ":" + ss;
+    }
+  }, 1000);
+})();
+</script>
+</body>
+</html>
